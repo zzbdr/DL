@@ -36,8 +36,10 @@ class ESPCN(nn.Module):
 
 
 if __name__ == '__main__':
-    e = ESPCN(4)
-    
+    e = ESPCN(4, 3)
+    a = torch.rand([2, 3, 64, 64])
+    b = e(a)
+    print(b.shape)
 
 
 
