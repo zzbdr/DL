@@ -96,7 +96,7 @@ class Trainer:
             loss.backward()
             self.optimizer.step()
             val_loss += loss.item()
-            psnr += self.calculate_psnr(pre, label)
+            psnr += self.calculate_psnr(pre, label).item()
             total += label.size(0)
 
         mpsnr = psnr / total
@@ -151,8 +151,8 @@ if __name__ == '__main__':
     parser.add_argument("--resume", default=True, type=bool)
     parser.add_argument("--num_epochs", default=20, type=int)
     parser.add_argument("--save_path", default=r"./weight.pt", type=str)
-    parser.add_argument("--interval", default=20, type=int)
-    parser.add_argument("--batch", default=64, type=int)
+    parser.add_argument("--interval", default=40, type=int)
+    parser.add_argument("--batch", default=32, type=int)
     args1 = parser.parse_args()
     main(args1)
 
