@@ -23,7 +23,7 @@ class Trainer:
                                      batch_size=batch, shuffle=True, drop_last=True)
         self.criterion = torch.nn.MSELoss()
         self.epoch = 0
-        self.lr = 0.1
+        self.lr = 0.01
         self.best_psnr = 0.
         if self.args.resume:
             if not os.path.exists(self.args.save_path):
@@ -73,7 +73,7 @@ class Trainer:
 
             if (i+1) % self.args.interval == 0:
                 end = time.time()
-                print("[Epoch]: {}[Progress: {:.1f}%]time:{:.2f} loss:{:.5f} psnr{:.2f}".format(
+                print("[Epoch]: {}[Progress: {:.1f}%]time:{:.2f} loss:{:.5f} psnr{:.4f}".format(
                     epoch, (i+1)*100/len(self.train_loader), end-start, train_loss/self.args.interval,
                     psnr/total
                 ))
@@ -87,43 +87,45 @@ class Trainer:
         psnr = 0.
         total = 0
         start = time.time()
-        for i, (img, label) in enumerate(self.train_loader):
-            img = img.to(self.device)
-            label = label.to(self.device)
-            pre = self.net(img)
-            loss = self.criterion(pre, label)
-            self.optimizer.zero_grad()
-            loss.backward()
-            self.optimizer.step()
-            val_loss += loss.item()
-            psnr += self.calculate_psnr(pre, label).item()
-            total += label.size(0)
+        with torch.no_grad():
+            for i, (img, label) in enumerate(self.train_loader):
+                img = img.to(self.device)
+                label = label.to(self.device)
+                pre = self.net(img)
+                loss = self.criterion(pre, label)
+                self.optimizer.zero_grad()
+                loss.backward()
+                self.optimizer.step()
+                val_loss += loss.item()
+                psnr += self.calculate_psnr(pre, label).item()
+                total += label.size(0)
 
-        mpsnr = psnr / total
-        end = time.time()
-        print("Test finished!")
-        print("[Epoch]: {}time:{:.2f} loss:{:.5f} psnr{:.2f}".format(
-            epoch, end - start, val_loss / len(self.val_loader), mpsnr
-        ))
-        if mpsnr > self.best_psnr:
-            self.best_psnr = mpsnr
-            print("Save params to {}".format(self.args.save_path))
-            param_dict = {
-                "epoch": epoch,
-                "lr": self.lr,
-                "best_psnr": self.best_psnr,
-                "net_dict": self.net.state_dict()
-            }
-            torch.save(param_dict, self.args.save_path)
+            mpsnr = psnr / total
+            end = time.time()
+            print("Test finished!")
+            print("[Epoch]: {} time:{:.2f} loss:{:.5f} psnr{:.4f}".format(
+                epoch, end - start, val_loss / len(self.val_loader), mpsnr
+            ))
+            if mpsnr > self.best_psnr:
+                self.best_psnr = mpsnr
+                print("Save params to {}".format(self.args.save_path))
+                param_dict = {
+                    "epoch": epoch,
+                    "lr": self.lr,
+                    "best_psnr": self.best_psnr,
+                    "net_dict": self.net.state_dict()
+                }
+                torch.save(param_dict, self.args.save_path)
         return val_loss/len(self.val_loader), mpsnr
 
-    def draw_curve(self, fig, epoch, train_loss, train_psnr, val_loss, val_psnr):
+    def draw_curve(self, epoch, train_loss, train_psnr, val_loss, val_psnr):
+        fig = plt.figure()
         ax0 = fig.add_subplot(121, title="loss")
-        ax1 = fig.add_subplot(122, title="err")
+        ax1 = fig.add_subplot(122, title="psnr")
         self.record["train_loss"].append(train_loss)
         self.record["train_psnr"].append(train_psnr)
         self.record["val_loss"].append(val_loss)
-        self.record["val_err"].append(val_psnr)
+        self.record["val_psnr"].append(val_psnr)
         self.x_epoch.append(epoch)
         ax0.plot(self.x_epoch, self.record["train_loss"], "bo-", label="train")
         ax0.plot(self.x_epoch, self.record["val_loss"], "ro-", label="val")
@@ -140,8 +142,7 @@ def main(args):
     for epoch in range(t.epoch, t.epoch + args.num_epochs):
         train_loss, train_psnr = t.train(epoch)
         val_loss, val_psnr = t.val(epoch)
-        fig = plt.figure()
-        t.draw_curve(fig, epoch, train_loss, train_psnr, val_loss, val_psnr)
+        t.draw_curve(epoch, train_loss, train_psnr, val_loss, val_psnr)
 
 
 if __name__ == '__main__':
@@ -150,9 +151,9 @@ if __name__ == '__main__':
     parser.add_argument("--data_path", default=r"T:\espcn", type=str)
     parser.add_argument("--resume", default=True, type=bool)
     parser.add_argument("--num_epochs", default=20, type=int)
-    parser.add_argument("--save_path", default=r"./weight.pt", type=str)
+    parser.add_argument("--save_path", default=r"./weight1.pt", type=str)
     parser.add_argument("--interval", default=40, type=int)
-    parser.add_argument("--batch", default=32, type=int)
+    parser.add_argument("--batch", default=64, type=int)
     args1 = parser.parse_args()
     main(args1)
 
