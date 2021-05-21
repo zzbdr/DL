@@ -49,7 +49,7 @@ if __name__ == '__main__':
     parse.add_argument("--device", default="cpu", type=str)
     parse.add_argument("--save_path", default=r"./weight1.pt", type=str)
     parse.add_argument("--result_path", default=r"./result.png", type=str)
-    parse.add_argument("--img_path", default=r"./0.jpg", type=str)
+    parse.add_argument("--img_path", default=r"./0.png", type=str)
     args1 = parse.parse_args()
     main(args1)
 
