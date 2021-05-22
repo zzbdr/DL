@@ -20,7 +20,7 @@ def target_transform(crop_size):
     ])
 
 
-def generate_data(row_path, save_path, upscale_factor, divide=0.7):
+def generate_data(row_path, save_path, upscale_factor, divide=0.9):
     all_data = os.listdir(row_path)
     data_length = len(all_data)
     train_stop = int(data_length * divide)
@@ -63,7 +63,7 @@ def generate_data(row_path, save_path, upscale_factor, divide=0.7):
 
 
 if __name__ == '__main__':
-    generate_data(r"F:\celebA\img_celeba", r"T:\espcn", 4)
+    generate_data(r"F:\celebA\img_celeba", r"T:\3\espcn", 3)
 
 
 

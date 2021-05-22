@@ -32,7 +32,7 @@ class ESPCN(nn.Module):
     def forward(self, x):
         x = self.conv(x)
         x = self.up(x)
-        return x
+        return torch.sigmoid(x)
 
 
 if __name__ == '__main__':

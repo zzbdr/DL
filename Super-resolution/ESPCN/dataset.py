@@ -15,7 +15,7 @@ class ESPCNDataset(Dataset):
         f.close()
         self.tfs = tfs.Compose([
             tfs.ToTensor(),
-            tfs.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            # tfs.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
 
     def __len__(self):
@@ -25,13 +25,15 @@ class ESPCNDataset(Dataset):
         img_name = self.dataset[index].strip()
         img = Image.open(os.path.join(self.path, self.ty, "img", img_name))
         label = Image.open(os.path.join(self.path, self.ty, "label", img_name))
+        # img.show()
+        # label.show()
         img = self.tfs(img)
         label = self.tfs(label)
         return img, label
 
 
 if __name__ == '__main__':
-    e = ESPCNDataset(r"T:\espcn")
+    e = ESPCNDataset(r"T:\espcn1")
     a, b = e[0]
     print(a)
 
