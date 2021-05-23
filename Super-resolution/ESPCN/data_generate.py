@@ -22,7 +22,7 @@ def target_transform(crop_size):
 
 def generate_data(row_path, save_path, upscale_factor, divide=0.9):
     all_data = os.listdir(row_path)
-    data_length = len(all_data)
+    data_length = 30000
     train_stop = int(data_length * divide)
     crop_size = get_crop_size(256, upscale_factor)
     img_transform = input_transform(crop_size, upscale_factor)

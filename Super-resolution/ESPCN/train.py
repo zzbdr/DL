@@ -21,7 +21,7 @@ class Trainer:
                                        batch_size=batch, shuffle=True, drop_last=True)
         self.val_loader = DataLoader(dataset.ESPCNDataset(self.args.data_path, "val"),
                                      batch_size=batch, shuffle=False, drop_last=True)
-        self.criterion = torch.nn.MSELoss()
+        self.criterion = torch.nn.L1Loss()
         self.epoch = 0
         self.lr = 0.01
         self.best_psnr = 0.
@@ -38,11 +38,11 @@ class Trainer:
                                                                                                 self.epoch, self.lr,
                                                                                                 self.best_psnr))
         self.net.to(self.device)
-        # self.optimizer = torch.optim.Adam([
-        #     {"params": self.net.conv.parameters()},
-        #     {"params": self.net.up.parameters(), "lr": self.lr*0.1}
-        # ], lr=self.lr)
-        self.optimizer = torch.optim.Adam(self.net.parameters(), lr=self.lr)
+        self.optimizer = torch.optim.Adam([
+            {"params": self.net.conv.parameters()},
+            {"params": self.net.up.parameters(), "lr": self.lr*0.1}
+        ], lr=self.lr)
+        # self.optimizer = torch.optim.Adam(self.net.parameters(), lr=self.lr)
 
     @staticmethod
     def calculate_psnr(img1, img2):
@@ -76,6 +76,14 @@ class Trainer:
                     psnr/total
                 ))
                 train_loss = 0.
+        print("Save params to {}".format(self.args.save_path1))
+        param_dict = {
+            "epoch": epoch,
+            "lr": self.lr,
+            "best_psnr": self.best_psnr,
+            "net_dict": self.net.state_dict()
+        }
+        torch.save(param_dict, self.args.save_path)
         return train_loss_all/len(self.train_loader), psnr/total
 
     def val(self, epoch):
@@ -89,7 +97,7 @@ class Trainer:
             for i, (img, label) in enumerate(self.train_loader):
                 img = img.to(self.device)
                 label = label.to(self.device)
-                pre = self.net(img)
+                pre = self.net(img).clamp(0.0, 1.0)
                 loss = self.criterion(pre, label)
                 val_loss += loss.item()
                 psnr += self.calculate_psnr(pre, label).item()
@@ -110,7 +118,7 @@ class Trainer:
                     "best_psnr": self.best_psnr,
                     "net_dict": self.net.state_dict()
                 }
-                torch.save(param_dict, self.args.save_path)
+                torch.save(param_dict, self.args.save_path1)
         return val_loss/len(self.val_loader), mpsnr
 
     def draw_curve(self, fig, epoch, train_loss, train_psnr, val_loss, val_psnr):
@@ -132,8 +140,9 @@ class Trainer:
 
     def lr_update(self):
         for param_group in self.optimizer.param_groups:
-            param_group['lr'] = self.lr * 0.1
-            self.lr = param_group["lr"]
+            param_group['lr'] = self.lr * 0.8
+        self.lr = self.optimizer.param_groups[0]["lr"]
+        print("===============================================")
         print("Learning rate has adjusted to {}".format(self.lr))
 
 
@@ -154,7 +163,8 @@ if __name__ == '__main__':
     parser.add_argument("--data_path", default=r"T:\3\espcn", type=str)
     parser.add_argument("--resume", default=False, type=bool)
     parser.add_argument("--num_epochs", default=100, type=int)
-    parser.add_argument("--save_path", default=r"./weight1.pt", type=str)
+    parser.add_argument("--save_path", default=r"./weight01.pt", type=str)
+    parser.add_argument("--save_path1", default=r"./weight00.pt", type=str)
     parser.add_argument("--interval", default=20, type=int)
     parser.add_argument("--batch", default=64, type=int)
     args1 = parser.parse_args()
