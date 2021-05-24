@@ -153,8 +153,8 @@ def main(args):
         train_loss, train_psnr = t.train(epoch)
         val_loss, val_psnr = t.val(epoch)
         t.draw_curve(fig, epoch, train_loss, train_psnr, val_loss, val_psnr)
-        if (epoch + 1) % 10 == 0:
-            t.lr_update()
+        # if (epoch + 1) % 10 == 0:
+        #     t.lr_update()
 
 
 if __name__ == '__main__':
