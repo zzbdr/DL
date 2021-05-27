@@ -108,7 +108,7 @@ if __name__ == '__main__':
     # a = torch.rand([1, 3, 64, 64])
     # print(g(a).shape)
     d = Discriminator()
-    b = torch.rand([1, 3, 512, 512])
+    b = torch.rand([2, 3, 512, 512])
     print(d(b).shape)
 
 

@@ -4,12 +4,13 @@ import torchvision.models as models
 
 
 class VGG(nn.Module):
-    def __init__(self):
+    def __init__(self, device):
         super(VGG, self).__init__()
         vgg = models.vgg19(True)
         for pa in vgg.parameters():
             pa.requires_grad = False
         self.vgg = vgg.features[:16]
+        self.vgg = self.vgg.to(device)
 
     def forward(self, x):
         out = self.vgg(x)
@@ -17,10 +18,10 @@ class VGG(nn.Module):
 
 
 class ContentLoss(nn.Module):
-    def __init__(self):
+    def __init__(self, device):
         super().__init__()
         self.mse = nn.MSELoss()
-        self.vgg19 = VGG()
+        self.vgg19 = VGG(device)
 
     def forward(self, fake, real):
         feature_fake = self.vgg19(fake)
@@ -39,9 +40,9 @@ class AdversarialLoss(nn.Module):
 
 
 class PerceptualLoss(nn.Module):
-    def __init__(self):
+    def __init__(self, device):
         super().__init__()
-        self.vgg_loss = ContentLoss()
+        self.vgg_loss = ContentLoss(device)
         self.adversarial = AdversarialLoss()
 
     def forward(self, fake, real, x):
