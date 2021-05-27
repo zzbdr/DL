@@ -44,8 +44,8 @@ class Trainer:
                                                                                                 self.best_psnr))
         self.dnet.to(self.device)
         self.gnet.to(self.device)
-        self.optimizer_d = torch.optim.Adam(self.dnet.parameters(), lr=self.lr*0.1)
-        self.optimizer_g = torch.optim.Adam(self.gnet.parameters(), lr=self.lr)
+        self.optimizer_d = torch.optim.Adam(self.dnet.parameters(), lr=self.lr)
+        self.optimizer_g = torch.optim.Adam(self.gnet.parameters(), lr=self.lr*0.1)
         self.real_label = torch.ones([batch, 1, 1, 1]).to(self.device)
         self.fake_label = torch.zeros([batch, 1, 1, 1]).to(self.device)
 
@@ -121,7 +121,7 @@ class Trainer:
                 img = img.to(self.device)
                 label = label.to(self.device)
                 fake_img = self.gnet(img)
-                loss = self.criterion_g(fake_img, label)
+                loss = self.criterion_g(fake_img, label, self.dnet(fake_img))
                 val_loss += loss.item()
                 psnr += self.calculate_psnr(fake_img, label).item()
                 total += 1
