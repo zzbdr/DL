@@ -72,18 +72,18 @@ class Trainer:
             self.optimizer_g.zero_grad()
             loss_g.backward()
             self.optimizer_g.step()
+            if i % 2 == 0:
+                real_out = self.dnet(label)
+                fake_out = self.dnet(fake_img.detach())
+                loss_d = self.criterion_d(real_out, self.real_label
+                                          ) + self.criterion_d(fake_out, self.fake_label)
+                self.optimizer_d.zero_grad()
+                loss_d.backward()
+                self.optimizer_d.step()
 
-            real_out = self.dnet(label)
-            fake_out = self.dnet(fake_img.detach())
-            loss_d = self.criterion_d(real_out, self.real_label
-                                      ) + self.criterion_d(fake_out, self.fake_label)
-            self.optimizer_d.zero_grad()
-            loss_d.backward()
-            self.optimizer_d.step()
-
-            train_loss_d += loss_d.item()
+                train_loss_d += loss_d.item()
+                train_loss_all_d += loss_d.item()
             train_loss_g += loss_g.item()
-            train_loss_all_d += loss_d.item()
             train_loss_all_g += loss_g.item()
             psnr += self.calculate_psnr(fake_img, label).item()
             total += 1
@@ -120,7 +120,7 @@ class Trainer:
             for i, (img, label) in enumerate(self.train_loader):
                 img = img.to(self.device)
                 label = label.to(self.device)
-                fake_img = self.gnet(img)
+                fake_img = self.gnet(img).clamp(0.0, 1.0)
                 loss = self.criterion_g(fake_img, label, self.dnet(fake_img))
                 val_loss += loss.item()
                 psnr += self.calculate_psnr(fake_img, label).item()
