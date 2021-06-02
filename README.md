@@ -1,2 +1,2 @@
 # DL
-Personal DeepLearning project
+个人深度学习项目
